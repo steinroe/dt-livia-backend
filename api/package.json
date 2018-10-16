@@ -1,0 +1,41 @@
+{
+  "name": "livia-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/index.js",
+    "test": "standard",
+    "dev": "set NODE_ENV=development&& nodemon src/index.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "dotenv": "^4.0.0",
+    "express": "^4.16.2",
+    "express-validation": "^1.0.2",
+    "helmet": "^3.9.0",
+    "http-status": "^1.0.1",
+    "joi": "^13.0.2",
+    "moment": "^2.20.1",
+    "request": "^2.81.0",
+    "underscore": "^1.8.3",
+    "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.12.1",
+    "standard": "^10.0.3",
+    "grunt": "1.0.3",
+    "grunt-cli": "1.3.1",
+    "grunt-eslint": "21.0.0",
+    "grunt-contrib-uglify": "4.0.0",
+    "grunt-babel": "8.0.0",
+    "babel-cli": "^6.0.0",
+    "@babel/core": "7.1.2",
+    "@babel/preset-env": "7.1.0"
+  },
+  "engines": {
+    "node": "^10.5.0"
+  },
+  "author": "",
+  "license": ""
+}
