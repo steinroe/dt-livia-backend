@@ -19,18 +19,23 @@ Array.prototype.unique = function() {
 }
 
 exports.enhanceNotesWithLinks = functions.firestore
-    .document('/notes/{noteId}')
+    .document('/users/{userId}/activities/{activityId}')
     .onCreate(async (oSnap, oContext) => {
+        const oNewActivity = oSnap.data()
+
+        // Only care about notes
+        if (oNewActivity.type !== 'note')
+            return
+
+        // Get medical information
         const oSnapshot = await firestore.collection('medicalInformation').get()
         const aMedInfoDocs = oSnapshot.docs
 
-        const oNewNote = oSnap.data()
-        const sTitle = oNewNote.title
-        const sContent = oNewNote.content
-
+        // Get keywords from textual content
+        const sTitle = oNewActivity.title
         const aTitle = sTitle.split(' ')
+        const sContent = oNewActivity.content
         const aContent = sContent.split(' ')
-
         const aWords = aTitle.concat(aContent).map(oWord => { return oWord.toLowerCase() })
 
         const aRelevantInfoIds = aWords.reduce((prev, sWord, index, array) => {
@@ -49,6 +54,6 @@ exports.enhanceNotesWithLinks = functions.firestore
         const aRefs = aRelevantInfoIds.map(oInfoId => {
             return firestore.doc('/medicalInformation/' + oInfoId)
         })
-        oNewNote['relevantInfos'] = aRefs
-        return firestore.collection('notes').add(oNewNote)
+        oNewActivity['relevantInfos'] = aRefs
+        return firestore.collection('users').doc(oContext.params.userId).collection('activities').doc(oContext.params.activityId).set(oNewActivity)
     })

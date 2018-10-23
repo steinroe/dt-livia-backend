@@ -7,12 +7,6 @@ enhanceNotesWithLinks({
 })
 
 enhanceNotesWithLinks({
-    title: 'My Second Note',
-    content: 'I have a condom on my head!',
-    timestamp: moment().toString()
-})
-
-enhanceNotesWithLinks({
     title: 'I am sleeping bad',
     content: 'My sleep got worse!',
     timestamp: moment().toString()
