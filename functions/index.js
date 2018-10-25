@@ -28,7 +28,7 @@ exports.enhanceNotesWithLinks = functions.firestore
             return
 
         // Get medical information
-        const oSnapshot = await firestore.collection('medicalInformation').get()
+        const oSnapshot = await firestore.collection('institutions').get()
         const aMedInfoDocs = oSnapshot.docs
 
         // Get keywords from textual content
@@ -38,22 +38,26 @@ exports.enhanceNotesWithLinks = functions.firestore
         const aContent = sContent.split(' ')
         const aWords = aTitle.concat(aContent).map(oWord => { return oWord.toLowerCase() })
 
-        const aRelevantInfoIds = aWords.reduce((prev, sWord, index, array) => {
+        const aRelevantInfos = aWords.reduce((prev, sWord, index, array) => {
             const aRelevantMedInfoDocs = aMedInfoDocs.filter(oDoc => {
                 return oDoc.data().keywords.find(sKeyword => {
                     return stringSimilarity.compareTwoStrings(sKeyword, sWord) > 0.6
                 })
             })
             
-            const aInfoIds = aRelevantMedInfoDocs.map(oDoc => {
-                return oDoc.id
+            const aData = aRelevantMedInfoDocs.map(oDoc => {
+                const oData = oDoc.data()
+                return {
+                    name: oData.name,
+                    description: oData.description,
+                    url: oData.url
+                }
             })
-            return [...prev, ...aInfoIds].unique()
+
+            return [...prev, ...aData].unique()
         }, [])
-        
-        const aRefs = aRelevantInfoIds.map(oInfoId => {
-            return firestore.doc('/medicalInformation/' + oInfoId)
-        })
-        oNewActivity['relevantInfos'] = aRefs
+
+    
+        oNewActivity['links'] = aRelevantInfos
         return firestore.collection('users').doc(oContext.params.userId).collection('activities').doc(oContext.params.activityId).set(oNewActivity)
     })

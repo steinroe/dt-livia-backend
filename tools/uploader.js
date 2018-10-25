@@ -13,7 +13,8 @@ const oWorkbook = XLSX.readFile('resources.xlsx', {})
 const oSheet = oWorkbook.Sheets[oWorkbook.SheetNames[0]]
 const aData = XLSX.utils.sheet_to_json(oSheet)
 
-const oCollectionRef = firestore.collection('medicalInformation')
+const oCollectionRef = firestore.collection('institutions')
+const aCats = []
 const aUploading = aData.map(async oData => {
     const aRawKeywords = oData['Keywords'].split(';')
     const aKeywords = aRawKeywords.reduce((prev, curr, ind, arr) => {
@@ -24,13 +25,9 @@ const aUploading = aData.map(async oData => {
         }
         return prev
     }, [])
-    const sId = oData['Institution/Organization Name']
-        .trim()
-        .toLowerCase()
-        .replace(/\s/g, '-')
-        .replace(/&/g, 'and')
-        .replace(/.org/g, '-org')
-        .replace(/u.s./g, 'us')
+
+    aCats.push(oData['Category'])
+
     const oDoc = {
         category: oData['Category'],
         description: oData['Short Description'],
@@ -38,9 +35,35 @@ const aUploading = aData.map(async oData => {
         name: oData['Institution/Organization Name'],
         url: oData['Link']
     }
-    return await oCollectionRef.doc(sId).set(oDoc)
+
+    return await oCollectionRef.add(oDoc)
 })
+
+Array.prototype.unique = function() {
+    let a = this.concat()
+    for(let i=0; i<a.length; ++i) {
+        for(let j=i+1; j<a.length; ++j) {
+            if(a[i] === a[j])
+                a.splice(j--, 1)
+        }
+    }
+    return a
+}
+
 Promise.all(aUploading)
 .then(aResult => {
-    console.log('Done')
+    console.log('Done Institutions')
+    const aUploadingCats = aCats.unique().map(async sCat => {
+        const oDoc = {
+            name: sCat
+        }
+        return await firestore.collection('categories').add(oDoc)
+    })
+    Promise.all(aUploadingCats)
+    .then(aResult => {
+        console.log('Done Categories')
+    })
+})
+.catch(err => {
+    console.error(err)
 })
